@@ -3,6 +3,8 @@
 
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+constexpr DWORD IDM_QUIT = 1000;
+
 NotifyIcon *g_notifyIcon;
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
@@ -73,14 +75,16 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 MENUITEMINFO info;
                 info.cbSize = sizeof(MENUITEMINFO);
                 info.fMask = MIIM_ID | MIIM_STRING;
-                info.wID = 0;
+                info.wID = IDM_QUIT;
                 info.dwTypeData = (LPWSTR) TEXT("Quit");
                 InsertMenuItem(hMenu, 0, true, &info);
 
                 POINT point;
                 GetCursorPos(&point);
-                TrackPopupMenu(hMenu, 0, point.x, point.y, 0, hwnd, nullptr);
-                DestroyMenu(hMenu);
+
+                SetForegroundWindow(hwnd);
+                TrackPopupMenu(hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, point.x, point.y, 0, hwnd, nullptr);
+                SendMessage(hwnd, WM_NULL, 0, 0);
 
                 break;
             }
@@ -89,6 +93,14 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
     case WM_TIMER:
         SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        return 0;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDM_QUIT:
+            SendMessage(hwnd, WM_CLOSE, 0, 0);
+            break;
+        }
         return 0;
     }
 
