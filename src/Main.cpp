@@ -1,15 +1,19 @@
 #include <Windows.h>
 #include "NotifyIcon.h"
+#include "Resource.h"
 
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 constexpr UINT IDM_QUIT = 1000;
 constexpr UINT IDM_CHANGEICON = 1001;
 
+HINSTANCE g_hInstance;
 NotifyIcon *g_notifyIcon;
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     constexpr LPCTSTR WindowClassName = TEXT("MainWindowClass");
+
+    g_hInstance = hInstance;
 
     WNDCLASSEX wcex;
     wcex.cbSize = sizeof(WNDCLASSEX);
@@ -18,7 +22,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON));
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
     wcex.lpszMenuName = nullptr;
@@ -76,11 +80,11 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 MENUITEMINFO info;
                 info.cbSize = sizeof(MENUITEMINFO);
                 info.fMask = MIIM_ID | MIIM_STRING;
-                info.wID = IDM_CHANGEICON;
                 info.wID = IDM_QUIT;
                 info.dwTypeData = (LPWSTR) TEXT("Quit");
                 InsertMenuItem(hMenu, 0, true, &info);
 
+                info.wID = IDM_CHANGEICON;
                 info.dwTypeData = (LPWSTR) TEXT("Change Icon");
                 InsertMenuItem(hMenu, 0, true, &info);
 
@@ -106,7 +110,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             SendMessage(hwnd, WM_CLOSE, 0, 0);
             break;
         case IDM_CHANGEICON:
-            g_notifyIcon->ChangeIcon(LoadIcon(nullptr, IDI_ERROR));
+            g_notifyIcon->ChangeIcon(LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)));
             break;
         }
         return 0;
