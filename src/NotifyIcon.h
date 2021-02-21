@@ -10,7 +10,7 @@ public:
 
     inline UINT GetID() { return id; }
 
-    void ChangeIcon(HICON hIcon);
+    bool ChangeIcon(HICON hIcon);
 
 private:
     HWND hwnd;

@@ -30,3 +30,14 @@ NotifyIcon::~NotifyIcon() {
 
     Shell_NotifyIcon(NIM_DELETE, &data);
 }
+
+bool NotifyIcon::ChangeIcon(HICON hIcon) {
+    NOTIFYICONDATA data;
+    data.cbSize = sizeof(NOTIFYICONDATA);
+    data.hWnd = hwnd;
+    data.uID = id;
+    data.uFlags = NIF_ICON;
+    data.hIcon = hIcon;
+
+    return Shell_NotifyIcon(NIM_MODIFY, &data);
+}

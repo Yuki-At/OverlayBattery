@@ -3,7 +3,8 @@
 
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-constexpr DWORD IDM_QUIT = 1000;
+constexpr UINT IDM_QUIT = 1000;
+constexpr UINT IDM_CHANGEICON = 1001;
 
 NotifyIcon *g_notifyIcon;
 
@@ -75,8 +76,12 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 MENUITEMINFO info;
                 info.cbSize = sizeof(MENUITEMINFO);
                 info.fMask = MIIM_ID | MIIM_STRING;
+                info.wID = IDM_CHANGEICON;
                 info.wID = IDM_QUIT;
                 info.dwTypeData = (LPWSTR) TEXT("Quit");
+                InsertMenuItem(hMenu, 0, true, &info);
+
+                info.dwTypeData = (LPWSTR) TEXT("Change Icon");
                 InsertMenuItem(hMenu, 0, true, &info);
 
                 POINT point;
@@ -99,6 +104,9 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         switch (LOWORD(wParam)) {
         case IDM_QUIT:
             SendMessage(hwnd, WM_CLOSE, 0, 0);
+            break;
+        case IDM_CHANGEICON:
+            g_notifyIcon->ChangeIcon(LoadIcon(nullptr, IDI_ERROR));
             break;
         }
         return 0;
