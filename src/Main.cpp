@@ -34,7 +34,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In
     }
 
     HWND hwnd = CreateWindowEx(
-        WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST/* | WS_EX_NOACTIVATE*/,
+        WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED,
         WindowClassName, TEXT("OverlayBattery"),
         WS_POPUP,
         CW_USEDEFAULT, CW_USEDEFAULT, 320, 240,
