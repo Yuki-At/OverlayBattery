@@ -27,8 +27,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In
     }
 
     HWND hwnd = CreateWindowEx(
-        WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_TOPMOST,
-        WindowClassName, TEXT("Battery Manager"),
+        WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST/* | WS_EX_NOACTIVATE*/,
+        WindowClassName, TEXT("OverlayBattery"),
         WS_POPUP,
         CW_USEDEFAULT, CW_USEDEFAULT, 320, 240,
         nullptr, nullptr,
@@ -39,11 +39,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In
         return -1;
     }
 
-    SetLayeredWindowAttributes(hwnd, 0, 0x7f, LWA_ALPHA);
-
     g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(nullptr, IDI_APPLICATION), TEXT("Hello world!"));
 
-    // ShowWindow(hwnd, SW_SHOW);
+    SetTimer(hwnd, 0, 10, nullptr);
+    SetLayeredWindowAttributes(hwnd, 0, 0x7f, LWA_ALPHA);
+    ShowWindow(hwnd, SW_SHOW);
 
     MSG msg { };
     while (GetMessage(&msg, nullptr, 0, 0)) {
@@ -70,20 +70,16 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 GetCursorPos(&position);
                 HMENU hMenu = CreatePopupMenu();
 
-                TCHAR text[] = TEXT("Quit");
-
                 MENUITEMINFO info;
                 info.cbSize = sizeof(MENUITEMINFO);
                 info.fMask = MIIM_ID | MIIM_STRING;
                 info.wID = 0;
-                info.dwTypeData = text;
-                info.cch = lstrlen(text);
-
+                info.dwTypeData = (LPWSTR) TEXT("Quit");
                 InsertMenuItem(hMenu, 0, true, &info);
 
                 POINT point;
                 GetCursorPos(&point);
-                TrackPopupMenuEx(hMenu, TPM_LEFTALIGN, point.x, point.y, hwnd, NULL);
+                TrackPopupMenu(hMenu, 0, point.x, point.y, 0, hwnd, nullptr);
                 DestroyMenu(hMenu);
 
                 break;
@@ -91,11 +87,8 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         }
         return 0;
 
-    case WM_PAINT:
-        LPCWSTR text = TEXT("Hello world!");
-        HDC hdc = GetWindowDC(nullptr);
-        TextOut(hdc, 10, 10, text, lstrlen(text));
-        ReleaseDC(nullptr, hdc);
+    case WM_TIMER:
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         return 0;
     }
 
