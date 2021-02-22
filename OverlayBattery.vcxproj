@@ -141,10 +141,12 @@
   <ItemGroup>
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\NotifyIcon.cpp" />
+    <ClCompile Include="src\wintoastlib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\NotifyIcon.h" />
     <ClInclude Include="src\Resource.h" />
+    <ClInclude Include="src\wintoastlib.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\Resource.rc" />
