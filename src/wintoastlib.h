@@ -49,7 +49,7 @@ namespace WinToastLib {
 
     class IWinToastHandler {
     public:
-        enum WinToastDismissalReason {
+        enum class WinToastDismissalReason {
             UserCanceled = ToastDismissalReason::ToastDismissalReason_UserCanceled,
             ApplicationHidden = ToastDismissalReason::ToastDismissalReason_ApplicationHidden,
             TimedOut = ToastDismissalReason::ToastDismissalReason_TimedOut

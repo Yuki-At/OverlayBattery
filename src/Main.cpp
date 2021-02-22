@@ -5,24 +5,53 @@
 #include "wintoastlib.h"
 
 
-class WinToastHandler : public WinToastLib::IWinToastHandler {
+using namespace WinToastLib;
+
+class WinToastHandler : public IWinToastHandler {
 public:
+    WinToastHandler() = default;
     void toastActivated() const override { }
     void toastActivated(int actionIndex) const override { }
     void toastDismissed(WinToastDismissalReason state) const override { }
     void toastFailed() const override { }
+} g_winToastHandler;
+
+
+enum class BatteryStatus {
+    HIGH,
+    NORMAL,
+    LOW,
+    UNKNOWN,
 };
-
-
-LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct);
-void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
-void OnDestroy(HWND hwnd);
-void OnTimer(HWND hwnd, UINT id);
 
 
 constexpr UINT IDM_QUIT = 1000;
 constexpr UINT IDM_CHANGEICON = 1001;
+
+constexpr UINT BatteryHigh = 60;
+constexpr UINT BatteryLow = 40;
+
+
+inline BatteryStatus GetBatteryStatus(BYTE percentage) {
+    if (percentage > 100){
+        return BatteryStatus::UNKNOWN;
+    }
+    if (percentage > BatteryHigh) {
+        return BatteryStatus::HIGH;
+    }
+    if (percentage > BatteryLow) {
+        return BatteryStatus::NORMAL;
+    }
+    return BatteryStatus::LOW;
+}
+
+
+void InitWinToast();
+bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct);
+void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
+void OnDestroy(HWND hwnd);
+void OnTimer(HWND hwnd, UINT id);
+LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 HINSTANCE g_hInstance;
@@ -74,6 +103,98 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In
     return (int) msg.wParam;
 }
 
+void InitWinToast() {
+    WinToast::WinToastError error;
+    WinToast::instance()->setAppName(TEXT("OverlayBattery"));
+    const auto aumi = WinToast::configureAUMI(TEXT("company"), TEXT("wintoast"), TEXT("wintoastexample"), TEXT("20201012"));
+    WinToast::instance()->setAppUserModelId(aumi);
+
+    if (!WinToast::instance()->initialize(&error)) {
+        wchar_t buf[250];
+        swprintf_s(buf, TEXT("Failed to initialize WinToast :%d"), error);
+        MessageBox(nullptr, buf, TEXT("ERROR"), MB_ICONERROR | MB_OK);
+    }
+}
+
+bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
+    g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(nullptr, IDI_APPLICATION), TEXT("OverlayBattery"));
+    InitWinToast();
+
+    GetSystemPowerStatus(&g_prevPowerStatus);
+    SetTimer(hwnd, 0, 10, nullptr);
+    SetLayeredWindowAttributes(hwnd, 0, 0x7f, LWA_ALPHA);
+    // ShowWindow(hwnd, SW_SHOW);
+
+    return true;
+}
+
+void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) {
+    switch (id) {
+    case IDM_QUIT:
+        SendMessage(hwnd, WM_CLOSE, 0, 0);
+        break;
+    case IDM_CHANGEICON:
+        g_notifyIcon->ChangeIcon(LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)));
+        break;
+    }
+}
+
+void OnDestroy(HWND hwnd) {
+    PostQuitMessage(0);
+    delete g_notifyIcon;
+}
+
+void OnTimer(HWND hwnd, UINT id) {
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+    SYSTEM_POWER_STATUS status;
+    GetSystemPowerStatus(&status);
+
+    switch (status.ACLineStatus) {
+    case 0:
+        // offline
+        break;
+    case 1:
+        // online
+        break;
+    case 0xff:
+        // unknown
+        break;
+    }
+
+    if (status.BatteryFlag == 0xff) {
+        // unknown status
+    }
+
+    if (status.BatteryFlag | 0x80) {
+        // no system battery
+    }
+
+    if (status.BatteryFlag | 0x08) {
+        // charging
+    }
+
+    if (GetBatteryStatus(g_prevPowerStatus.BatteryLifePercent) != GetBatteryStatus(status.BatteryLifePercent)) {
+        WinToastTemplate toast(WinToastTemplate::Text02);
+        toast.setTextField(TEXT("Battery Alert!"), WinToastTemplate::FirstLine);
+
+        switch (GetBatteryStatus(status.BatteryLifePercent)) {
+        case BatteryStatus::HIGH:
+            toast.setTextField(TEXT("The battery level is HIGH."), WinToastTemplate::SecondLine);
+            WinToast::instance()->showToast(toast, &g_winToastHandler);
+            break;
+        case BatteryStatus::LOW:
+            toast.setTextField(TEXT("The battery level is LOW."), WinToastTemplate::SecondLine);
+            WinToast::instance()->showToast(toast, &g_winToastHandler);
+            break;
+        }
+    }
+
+    status.BatteryLifeTime; // life time(sec), if unknown or connected AC line set -1.
+
+    g_prevPowerStatus = status;
+}
+
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
         HANDLE_MSG(hwnd, WM_CREATE, OnCreate);
@@ -115,64 +236,4 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
-bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
-    g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(nullptr, IDI_APPLICATION), TEXT("OverlayBattery\n20%"));
-
-    SetTimer(hwnd, 0, 10, nullptr);
-    SetLayeredWindowAttributes(hwnd, 0, 0x7f, LWA_ALPHA);
-    ShowWindow(hwnd, SW_SHOW);
-
-    return true;
-}
-
-void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) {
-    switch (id) {
-    case IDM_QUIT:
-        SendMessage(hwnd, WM_CLOSE, 0, 0);
-        break;
-    case IDM_CHANGEICON:
-        g_notifyIcon->ChangeIcon(LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)));
-        break;
-    }
-}
-
-void OnDestroy(HWND hwnd) {
-    PostQuitMessage(0);
-    delete g_notifyIcon;
-}
-
-void OnTimer(HWND hwnd, UINT id) {
-    SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-    SYSTEM_POWER_STATUS status;
-    GetSystemPowerStatus(&status);
-
-    switch (status.ACLineStatus) {
-    case 0:
-        // offline
-        break;
-    case 1:
-        // online
-        break;
-    case 0xff:
-        // unknown
-        break;
-    }
-
-    if (status.BatteryFlag == 0xff) {
-        // unknown status
-    }
-
-    if (status.BatteryFlag | 0x80) {
-        // no system battery
-    }
-
-    if (status.BatteryFlag | 0x08) {
-        // charging
-    }
-
-    status.BatteryLifePercent; // percentage, if unknown status set 255.
-    status.BatteryLifeTime; // life time(sec), if unknown or connected AC line set -1.
 }
