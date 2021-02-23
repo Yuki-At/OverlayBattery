@@ -26,7 +26,7 @@ enum class BatteryStatus {
 
 
 constexpr UINT IDM_QUIT = 1000;
-constexpr UINT IDM_CHANGEICON = 1001;
+constexpr UINT IDM_SETTING = 1001;
 
 constexpr UINT BatteryHigh = 60;
 constexpr UINT BatteryLow = 40;
@@ -117,7 +117,7 @@ void InitWinToast() {
 }
 
 bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
-    g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(nullptr, IDI_APPLICATION), TEXT("OverlayBattery"));
+    g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)), TEXT("OverlayBattery"));
     InitWinToast();
 
     GetSystemPowerStatus(&g_prevPowerStatus);
@@ -133,8 +133,7 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) {
     case IDM_QUIT:
         SendMessage(hwnd, WM_CLOSE, 0, 0);
         break;
-    case IDM_CHANGEICON:
-        g_notifyIcon->ChangeIcon(LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)));
+    case IDM_SETTING:
         break;
     }
 }
@@ -145,7 +144,7 @@ void OnDestroy(HWND hwnd) {
 }
 
 void OnTimer(HWND hwnd, UINT id) {
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    // SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     SYSTEM_POWER_STATUS status;
     GetSystemPowerStatus(&status);
@@ -218,8 +217,8 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 info.dwTypeData = (LPWSTR) TEXT("Quit");
                 InsertMenuItem(hMenu, 0, true, &info);
 
-                info.wID = IDM_CHANGEICON;
-                info.dwTypeData = (LPWSTR) TEXT("Change Icon");
+                info.wID = IDM_SETTING;
+                info.dwTypeData = (LPWSTR) TEXT("Setting");
                 InsertMenuItem(hMenu, 0, true, &info);
 
                 POINT point;
