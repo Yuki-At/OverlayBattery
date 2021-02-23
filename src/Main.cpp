@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <windowsx.h>
 #include "NotifyIcon.h"
+#include "PopupMenu.h"
 #include "Resource.h"
 #include "wintoastlib.h"
 
@@ -14,7 +15,7 @@ public:
     void toastActivated(int actionIndex) const override { }
     void toastDismissed(WinToastDismissalReason state) const override { }
     void toastFailed() const override { }
-} g_winToastHandler;
+};
 
 
 enum class BatteryStatus {
@@ -24,12 +25,19 @@ enum class BatteryStatus {
     UNKNOWN,
 };
 
+enum class Theme {
+    Dark,
+    Light
+};
+
 
 constexpr UINT IDM_QUIT = 1000;
 constexpr UINT IDM_SETTING = 1001;
 
 constexpr UINT BatteryHigh = 60;
 constexpr UINT BatteryLow = 40;
+
+constexpr UINT DarkBackground = 0x292a2d;
 
 
 inline BatteryStatus GetBatteryStatus(BYTE percentage) {
@@ -57,6 +65,9 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 HINSTANCE g_hInstance;
 NotifyIcon *g_notifyIcon;
 SYSTEM_POWER_STATUS g_prevPowerStatus;
+WinToastHandler g_winToastHandler;
+Theme g_theme = Theme::Dark;
+PopupMenu g_popupMenu;
 
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
@@ -119,6 +130,9 @@ void InitWinToast() {
 bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
     g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)), TEXT("OverlayBattery"));
     InitWinToast();
+    g_popupMenu.AddItem(IDM_SETTING, TEXT("Setting"));
+    g_popupMenu.AddItem(IDM_QUIT, TEXT("Quit"));
+    // g_popupMenu.SetBackground((HBRUSH) GetStockObject(BLACK_BRUSH));
 
     GetSystemPowerStatus(&g_prevPowerStatus);
     SetTimer(hwnd, 0, 10, nullptr);
@@ -203,31 +217,12 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
     case NotifyIcon::WM_NOTIFYICON:
         if (wParam == g_notifyIcon->GetID()) {
+            POINT cursorPos;
+
             switch (lParam) {
             case WM_RBUTTONDOWN:
-                POINT position;
-
-                GetCursorPos(&position);
-                HMENU hMenu = CreatePopupMenu();
-
-                MENUITEMINFO info;
-                info.cbSize = sizeof(MENUITEMINFO);
-                info.fMask = MIIM_ID | MIIM_STRING;
-                info.wID = IDM_QUIT;
-                info.dwTypeData = (LPWSTR) TEXT("Quit");
-                InsertMenuItem(hMenu, 0, true, &info);
-
-                info.wID = IDM_SETTING;
-                info.dwTypeData = (LPWSTR) TEXT("Setting");
-                InsertMenuItem(hMenu, 0, true, &info);
-
-                POINT point;
-                GetCursorPos(&point);
-
-                SetForegroundWindow(hwnd);
-                TrackPopupMenu(hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, point.x, point.y, 0, hwnd, nullptr);
-                SendMessage(hwnd, WM_NULL, 0, 0);
-
+                GetCursorPos(&cursorPos);
+                g_popupMenu.Show(hwnd, cursorPos.x, cursorPos.y);
                 break;
             }
         }
