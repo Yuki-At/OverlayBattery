@@ -25,19 +25,12 @@ enum class BatteryStatus {
     UNKNOWN,
 };
 
-enum class Theme {
-    Dark,
-    Light
-};
-
 
 constexpr UINT IDM_QUIT = 1000;
 constexpr UINT IDM_SETTING = 1001;
 
 constexpr UINT BatteryHigh = 60;
 constexpr UINT BatteryLow = 40;
-
-constexpr UINT DarkBackground = 0x292a2d;
 
 
 inline BatteryStatus GetBatteryStatus(BYTE percentage) {
@@ -66,7 +59,6 @@ HINSTANCE g_hInstance;
 NotifyIcon *g_notifyIcon;
 SYSTEM_POWER_STATUS g_prevPowerStatus;
 WinToastHandler g_winToastHandler;
-Theme g_theme = Theme::Dark;
 PopupMenu g_popupMenu;
 
 
@@ -132,7 +124,6 @@ bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
     InitWinToast();
     g_popupMenu.AddItem(IDM_SETTING, TEXT("Setting"));
     g_popupMenu.AddItem(IDM_QUIT, TEXT("Quit"));
-    // g_popupMenu.SetBackground((HBRUSH) GetStockObject(BLACK_BRUSH));
 
     GetSystemPowerStatus(&g_prevPowerStatus);
     SetTimer(hwnd, 0, 10, nullptr);
