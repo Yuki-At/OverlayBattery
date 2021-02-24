@@ -18,7 +18,7 @@ public:
 };
 
 
-enum class BatteryStatus {
+enum class BatteryLevel {
     HIGH,
     NORMAL,
     LOW,
@@ -33,17 +33,17 @@ constexpr UINT BatteryHigh = 60;
 constexpr UINT BatteryLow = 40;
 
 
-inline BatteryStatus GetBatteryStatus(BYTE percentage) {
+inline BatteryLevel GetBatteryLevel(BYTE percentage) {
     if (percentage > 100){
-        return BatteryStatus::UNKNOWN;
+        return BatteryLevel::UNKNOWN;
     }
     if (percentage > BatteryHigh) {
-        return BatteryStatus::HIGH;
+        return BatteryLevel::HIGH;
     }
     if (percentage > BatteryLow) {
-        return BatteryStatus::NORMAL;
+        return BatteryLevel::NORMAL;
     }
-    return BatteryStatus::LOW;
+    return BatteryLevel::LOW;
 }
 
 
@@ -52,6 +52,7 @@ bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct);
 void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify);
 void OnDestroy(HWND hwnd);
 void OnTimer(HWND hwnd, UINT id);
+void Update(BatteryLevel level);
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
@@ -126,6 +127,8 @@ bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
     g_popupMenu.AddItem(IDM_QUIT, TEXT("Quit"));
 
     GetSystemPowerStatus(&g_prevPowerStatus);
+    Update(GetBatteryLevel(g_prevPowerStatus.BatteryLifePercent));
+
     SetTimer(hwnd, 0, 10, nullptr);
     SetLayeredWindowAttributes(hwnd, 0, 0x7f, LWA_ALPHA);
     // ShowWindow(hwnd, SW_SHOW);
@@ -178,25 +181,29 @@ void OnTimer(HWND hwnd, UINT id) {
         // charging
     }
 
-    if (GetBatteryStatus(g_prevPowerStatus.BatteryLifePercent) != GetBatteryStatus(status.BatteryLifePercent)) {
-        WinToastTemplate toast(WinToastTemplate::Text02);
-        toast.setTextField(TEXT("Battery Alert!"), WinToastTemplate::FirstLine);
-
-        switch (GetBatteryStatus(status.BatteryLifePercent)) {
-        case BatteryStatus::HIGH:
-            toast.setTextField(TEXT("The battery level is HIGH."), WinToastTemplate::SecondLine);
-            WinToast::instance()->showToast(toast, &g_winToastHandler);
-            break;
-        case BatteryStatus::LOW:
-            toast.setTextField(TEXT("The battery level is LOW."), WinToastTemplate::SecondLine);
-            WinToast::instance()->showToast(toast, &g_winToastHandler);
-            break;
-        }
+    if (GetBatteryLevel(g_prevPowerStatus.BatteryLifePercent) != GetBatteryLevel(status.BatteryLifePercent)) {
+        Update(GetBatteryLevel(status.BatteryLifePercent));
     }
 
     status.BatteryLifeTime; // life time(sec), if unknown or connected AC line set -1.
 
     g_prevPowerStatus = status;
+}
+
+void Update(BatteryLevel level) {
+    WinToastTemplate toast(WinToastTemplate::Text02);
+    toast.setTextField(TEXT("Battery Alert!"), WinToastTemplate::FirstLine);
+
+    switch (level) {
+    case BatteryLevel::HIGH:
+        toast.setTextField(TEXT("The battery level is HIGH."), WinToastTemplate::SecondLine);
+        WinToast::instance()->showToast(toast, &g_winToastHandler);
+        break;
+    case BatteryLevel::LOW:
+        toast.setTextField(TEXT("The battery level is LOW."), WinToastTemplate::SecondLine);
+        WinToast::instance()->showToast(toast, &g_winToastHandler);
+        break;
+    }
 }
 
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
