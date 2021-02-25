@@ -1,3 +1,131 @@
-#include "Resource.h"
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
 
-IDI_OVERLAYBATTERY_ICON ICON "icon.ico"
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 (日本) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON                ICON                    "icon.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG1 DIALOGEX 0, 0, 314, 164
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "Meiryo UI", 400, 0, 0x80
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,198,143,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,257,143,50,14
+    LTEXT           "HIGH PERCENTAGE",IDC_STATIC,37,23,60,8
+    LTEXT           "LOW PERCENTAGE",IDC_STATIC,38,48,59,8
+    CONTROL         "",ID_SLIDER_HIGH,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,132,22,100,10
+    CONTROL         "",ID_SLIDER_LOW,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,132,47,100,10
+    CTEXT           "60%",ID_TEXT_HIGH,255,23,24,8
+    CTEXT           "40%",ID_TEXT_LOW,255,48,24,8
+    CONTROL         "Enable toast notification",ID_CHECK_ENABLETOAST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,32,122,150,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 307
+        VERTGUIDE, 67
+        VERTGUIDE, 182
+        VERTGUIDE, 267
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 157
+        HORZGUIDE, 27
+        HORZGUIDE, 52
+        HORZGUIDE, 77
+        HORZGUIDE, 102
+        HORZGUIDE, 127
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG1 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // 日本語 (日本) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

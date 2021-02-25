@@ -54,6 +54,7 @@ void OnDestroy(HWND hwnd);
 void OnTimer(HWND hwnd, UINT id);
 void Update(BatteryLevel level);
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK DialogProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 HINSTANCE g_hInstance;
@@ -75,7 +76,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPSTR, _In
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON));
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON));
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
     wcex.lpszMenuName = nullptr;
@@ -121,7 +122,7 @@ void InitWinToast() {
 }
 
 bool OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct) {
-    g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_OVERLAYBATTERY_ICON)), TEXT("OverlayBattery"));
+    g_notifyIcon = new NotifyIcon(hwnd, 1, LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_ICON)), TEXT("OverlayBattery"));
     InitWinToast();
     g_popupMenu.AddItem(IDM_SETTING, TEXT("Setting"));
     g_popupMenu.AddItem(IDM_QUIT, TEXT("Quit"));
@@ -142,6 +143,7 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) {
         SendMessage(hwnd, WM_CLOSE, 0, 0);
         break;
     case IDM_SETTING:
+        DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_DIALOG1), nullptr, DialogProcedure);
         break;
     }
 }
@@ -228,4 +230,40 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+INT_PTR CALLBACK DialogProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    switch (uMsg) {
+    case WM_INITDIALOG:
+        SendDlgItemMessage(hwnd, ID_SLIDER_HIGH, TBM_SETRANGE, true, MAKELONG(0, 100));
+        SendDlgItemMessage(hwnd, ID_SLIDER_HIGH, TBM_SETPOS  , true, 60);
+        return true;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDOK:
+            EndDialog(hwnd, 0);
+            break;
+
+        case IDCANCEL:
+            EndDialog(hwnd, 0);
+            break;
+
+        case ID_CHECK_ENABLETOAST:
+
+            break;
+        }
+        OutputDebugString(TEXT("WM_COMMAND\n"));
+        return true;
+
+    case WM_HSCROLL:
+        if ((HWND) lParam == GetDlgItem(hwnd, ID_SLIDER_HIGH)) {
+            TCHAR buf[256];
+            wsprintf(buf, TEXT("%d%%"), (int) SendDlgItemMessage(hwnd, ID_SLIDER_HIGH, TBM_GETPOS, 0, 0));
+            SetWindowText(GetDlgItem(hwnd, ID_TEXT_HIGH), buf);
+        }
+        return true;
+    }
+
+    return false;
 }
