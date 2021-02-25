@@ -48,9 +48,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\icon1.ico">
-      <Filter>リソース ファイル</Filter>
-    </Image>
     <Image Include="src\icon.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
