@@ -54,7 +54,7 @@ void OnDestroy(HWND hwnd);
 void OnTimer(HWND hwnd, UINT id);
 void Update(BatteryLevel level);
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK DialogProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK DialogProcedure(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 HINSTANCE g_hInstance;
@@ -232,21 +232,21 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-INT_PTR CALLBACK DialogProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK DialogProcedure(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_INITDIALOG:
-        SendDlgItemMessage(hwnd, ID_SLIDER_HIGH, TBM_SETRANGE, true, MAKELONG(0, 100));
-        SendDlgItemMessage(hwnd, ID_SLIDER_HIGH, TBM_SETPOS  , true, 60);
+        SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_SETRANGE, true, MAKELONG(0, 100));
+        SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_SETPOS  , true, 60);
         return true;
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case IDOK:
-            EndDialog(hwnd, 0);
+            EndDialog(hdlg, 0);
             break;
 
         case IDCANCEL:
-            EndDialog(hwnd, 0);
+            EndDialog(hdlg, 0);
             break;
 
         case ID_CHECK_ENABLETOAST:
@@ -257,10 +257,10 @@ INT_PTR CALLBACK DialogProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         return true;
 
     case WM_HSCROLL:
-        if ((HWND) lParam == GetDlgItem(hwnd, ID_SLIDER_HIGH)) {
+        if ((HWND) lParam == GetDlgItem(hdlg, ID_SLIDER_HIGH)) {
             TCHAR buf[256];
-            wsprintf(buf, TEXT("%d%%"), (int) SendDlgItemMessage(hwnd, ID_SLIDER_HIGH, TBM_GETPOS, 0, 0));
-            SetWindowText(GetDlgItem(hwnd, ID_TEXT_HIGH), buf);
+            wsprintf(buf, TEXT("%d%%"), (int) SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_GETPOS, 0, 0));
+            SetWindowText(GetDlgItem(hdlg, ID_TEXT_HIGH), buf);
         }
         return true;
     }
