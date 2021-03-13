@@ -235,9 +235,18 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 INT_PTR CALLBACK DialogProcedure(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_INITDIALOG:
+    {
+        RECT rw, rd;
+        GetWindowRect(hdlg, &rw);
+        GetWindowRect(GetDesktopWindow(), &rd);
+        SetWindowPos(hdlg, nullptr, (rd.right - rw.right) / 2, (rd.bottom - rw.bottom) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+
         SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_SETRANGE, true, MAKELONG(0, 100));
-        SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_SETPOS  , true, 60);
+        SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_SETPOS, true, BatteryHigh);
+        SendDlgItemMessage(hdlg, ID_SLIDER_LOW, TBM_SETRANGE, true, MAKELONG(0, 100));
+        SendDlgItemMessage(hdlg, ID_SLIDER_LOW, TBM_SETPOS, true, BatteryLow);
         return true;
+    }
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
@@ -253,7 +262,6 @@ INT_PTR CALLBACK DialogProcedure(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lPa
 
             break;
         }
-        OutputDebugString(TEXT("WM_COMMAND\n"));
         return true;
 
     case WM_HSCROLL:
@@ -261,6 +269,11 @@ INT_PTR CALLBACK DialogProcedure(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lPa
             TCHAR buf[256];
             wsprintf(buf, TEXT("%d%%"), (int) SendDlgItemMessage(hdlg, ID_SLIDER_HIGH, TBM_GETPOS, 0, 0));
             SetWindowText(GetDlgItem(hdlg, ID_TEXT_HIGH), buf);
+        }
+        else if ((HWND) lParam == GetDlgItem(hdlg, ID_SLIDER_LOW)) {
+            TCHAR buf[256];
+            wsprintf(buf, TEXT("%d%%"), (int) SendDlgItemMessage(hdlg, ID_SLIDER_LOW, TBM_GETPOS, 0, 0));
+            SetWindowText(GetDlgItem(hdlg, ID_TEXT_LOW), buf);
         }
         return true;
     }
